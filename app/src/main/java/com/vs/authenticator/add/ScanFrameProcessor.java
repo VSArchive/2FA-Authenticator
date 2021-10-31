@@ -44,7 +44,7 @@ public class ScanFrameProcessor implements FrameProcessor {
 
     private void sendTextToActivity(String text) {
         Intent intent = new Intent();
-        intent.setAction(ScanActivity.ScanBroadcastReceiver.ACTION);
+        intent.setAction(ScanActivity.ACTION);
         intent.putExtra("scanResult", text);
         scanActivityContext.sendBroadcast(intent);
     }

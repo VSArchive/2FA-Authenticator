@@ -23,6 +23,10 @@
 
     <string name="delete_summary">This is your last chance: if you delete this token, it will be gone forever. It will not be disabled on the server.</string>
     <string name="delete_question">Delete this token?</string>
+    <string name="logo">logo</string>
+    <string name="menu">menu</string>
+    <string name="username">username</string>
+    <string name="user_example_com">user@example.com</string>
 
     <string-array name="algorithms">
         <item>MD5</item>

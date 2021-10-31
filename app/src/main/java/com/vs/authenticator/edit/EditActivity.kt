@@ -1,152 +1,156 @@
-package com.vs.authenticator.edit;
+package com.vs.authenticator.edit
 
-import android.content.Intent;
-import android.net.Uri;
-import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageButton;
-import android.widget.Toast;
+import android.content.Intent
+import android.net.Uri
+import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
+import android.view.View
+import android.widget.Button
+import android.widget.EditText
+import android.widget.ImageButton
+import android.widget.Toast
+import com.squareup.picasso.Picasso
+import com.vs.authenticator.R
+import com.vs.authenticator.Token
+import com.vs.authenticator.TokenPersistence
 
-import com.squareup.picasso.Picasso;
-import com.vs.authenticator.R;
-import com.vs.authenticator.Token;
-import com.vs.authenticator.TokenPersistence;
+class EditActivity : BaseActivity(), TextWatcher, View.OnClickListener {
+    companion object {
+        private const val REQUEST_IMAGE_OPEN = 1
+    }
 
-public class EditActivity extends BaseActivity implements TextWatcher, View.OnClickListener {
-    private final int REQUEST_IMAGE_OPEN = 1;
-    private EditText mIssuer;
-    private EditText mLabel;
-    private ImageButton mImage;
-    private Button mRestore;
-    private Button mSave;
-    private String mIssuerCurrent;
-    private String mIssuerDefault;
-    private String mLabelCurrent;
-    private String mLabelDefault;
-    private Uri mImageCurrent;
-    private Uri mImageDefault;
-    private Uri mImageDisplay;
-    private Token token;
+    private lateinit var mLabel: EditText
+    private lateinit var mIssuer: EditText
+    private var mRestore: Button? = null
+    private var mSave: Button? = null
+    private var mIssuerCurrent: String? = null
+    private var mIssuerDefault: String? = null
+    private var mLabelCurrent: String? = null
+    private var mLabelDefault: String? = null
+    private var mImageCurrent: Uri? = null
+    private var mImageDefault: Uri? = null
+    private var mImageDisplay: Uri? = null
+    private var token: Token? = null
 
-    private void showImage(Uri uri) {
-        mImageDisplay = uri;
-        onTextChanged(null, 0, 0, 0);
-        Picasso.with(this)
+    private fun showImage(uri: Uri?) {
+        if (uri != null) {
+            mImageDisplay = uri
+            onTextChanged("", 0, 0, 0)
+            Picasso.with(this)
                 .load(uri)
                 .placeholder(R.mipmap.ic_launcher_foreground)
-                .into(mImage);
-    }
-
-    private boolean isImage(Uri uri) {
-        if (uri == null)
-            return mImageDisplay != null;
-
-        return !uri.equals(mImageDisplay);
-    }
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.edit);
-
-        // Get token values.
-        token = new TokenPersistence(this).get(getPosition());
-        mIssuerCurrent = token.getIssuer();
-        mLabelCurrent = token.getLabel();
-        mImageCurrent = token.getImage();
-        mIssuerDefault = token.getIssuer();
-        mLabelDefault = token.getLabel();
-        mImageDefault = token.getImage();
-
-        // Get references to widgets.
-        mIssuer = findViewById(R.id.issuer);
-        mLabel = findViewById(R.id.label);
-        mImage = findViewById(R.id.image);
-        mRestore = findViewById(R.id.restore);
-        mSave = findViewById(R.id.save);
-
-        // Setup text changed listeners.
-        mIssuer.addTextChangedListener(this);
-        mLabel.addTextChangedListener(this);
-
-        // Setup click callbacks.
-        findViewById(R.id.cancel).setOnClickListener(this);
-        findViewById(R.id.save).setOnClickListener(this);
-        findViewById(R.id.restore).setOnClickListener(this);
-        mImage.setOnClickListener(this);
-
-        // Setup initial state.
-        showImage(mImageCurrent);
-        mLabel.setText(mLabelCurrent);
-        mIssuer.setText(mIssuerCurrent);
-        mIssuer.setSelection(mIssuer.getText().length());
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (resultCode == RESULT_OK) {
-            if (requestCode == REQUEST_IMAGE_OPEN) {
-                //mImageDisplay is set in showImage
-                showImage(data.getData());
-                token.setImage(mImageDisplay);
-            } else {
-                Toast.makeText(EditActivity.this, R.string.error_image_open, Toast.LENGTH_LONG).show();
-            }
+                .into(findViewById<ImageButton>(R.id.image))
         }
     }
 
-    @Override
-    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
+    private fun isImage(uri: Uri?): Boolean {
+        if (uri == null) {
+            return false
+        }
+        return true
     }
 
-    @Override
-    public void onTextChanged(CharSequence s, int start, int before, int count) {
-        String label = mLabel.getText().toString();
-        String issuer = mIssuer.getText().toString();
-        mSave.setEnabled(!label.equals(mLabelCurrent) || !issuer.equals(mIssuerCurrent) || isImage(mImageCurrent));
-        mRestore.setEnabled(!label.equals(mLabelDefault) || !issuer.equals(mIssuerDefault) || isImage(mImageDefault));
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.edit)
+
+        // Get token values.
+        token = TokenPersistence(this)[position]
+        mIssuerCurrent = token!!.issuer
+        mLabelCurrent = token!!.label
+        mImageCurrent = token!!.image
+        mIssuerDefault = token!!.issuer
+        mLabelDefault = token!!.label
+        mImageDefault = token!!.image
+
+        // Get references to widgets.
+        mIssuer = findViewById(R.id.issuer)
+        mLabel = findViewById(R.id.label)
+        mRestore = findViewById(R.id.restore)
+        mSave = findViewById(R.id.save)
+
+        // Setup text changed listeners.
+        mIssuer.addTextChangedListener(this)
+        mLabel.addTextChangedListener(this)
+
+        // Setup click callbacks.
+        findViewById<View>(R.id.cancel).setOnClickListener(this)
+        findViewById<View>(R.id.save).setOnClickListener(this)
+        findViewById<View>(R.id.restore).setOnClickListener(this)
+
+        val imageButton: ImageButton? = findViewById(R.id.image)
+
+        imageButton!!.setOnClickListener {
+            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
+            intent.type = "image/*"
+            intent.addCategory(Intent.CATEGORY_OPENABLE)
+            startActivityForResult(intent, REQUEST_IMAGE_OPEN)
+        }
+
+        // Setup initial state.
+        showImage(mImageCurrent)
+        mLabel.setText(mLabelCurrent)
+        mIssuer.setText(mIssuerCurrent)
+        mIssuer.setSelection(mIssuer.text.length)
     }
 
-    @Override
-    public void afterTextChanged(Editable s) {
-
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode == RESULT_OK) {
+            if (requestCode == REQUEST_IMAGE_OPEN) {
+                //mImageDisplay is set in showImage
+                showImage(data!!.data)
+                token!!.image = mImageDisplay
+            } else {
+                Toast.makeText(this@EditActivity, R.string.error_image_open, Toast.LENGTH_LONG)
+                    .show()
+                showImage(null)
+                token!!.image = mImageDisplay
+            }
+        } else {
+            Toast.makeText(this@EditActivity, R.string.error_image_open, Toast.LENGTH_LONG)
+                .show()
+            showImage(null)
+            token!!.image = mImageDisplay
+        }
     }
 
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.image:
-                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-                intent.setType("image/*");
-                intent.addCategory(Intent.CATEGORY_OPENABLE);
-                startActivityForResult(intent, REQUEST_IMAGE_OPEN);
-                break;
+    override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}
+    override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
+        val label = mLabel.text.toString()
+        val issuer = mIssuer.text.toString()
+        mSave!!.isEnabled =
+            label != mLabelCurrent || issuer != mIssuerCurrent || isImage(mImageCurrent)
+        mRestore!!.isEnabled =
+            label != mLabelDefault || issuer != mIssuerDefault || isImage(mImageDefault)
+    }
 
-            case R.id.restore:
-                mLabel.setText(mLabelDefault);
-                mIssuer.setText(mIssuerDefault);
-                mIssuer.setSelection(mIssuer.getText().length());
-                showImage(mImageDefault);
-                break;
-
-            case R.id.save:
-                TokenPersistence tp = new TokenPersistence(this);
-                Token token = tp.get(getPosition());
-                token.setIssuer(mIssuer.getText().toString());
-                token.setLabel(mLabel.getText().toString());
-                token.setImage(mImageDisplay);
-                TokenPersistence.saveAsync(this, token);
-
-            case R.id.cancel:
-                finish();
-                break;
+    override fun afterTextChanged(s: Editable) {}
+    override fun onClick(v: View) {
+        when (v.id) {
+            R.id.image -> {
+                val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
+                intent.type = "image/*"
+                intent.addCategory(Intent.CATEGORY_OPENABLE)
+                startActivityForResult(intent, REQUEST_IMAGE_OPEN)
+            }
+            R.id.restore -> {
+                mLabel.setText(mLabelDefault)
+                mIssuer.setText(mIssuerDefault)
+                mIssuer.setSelection(mIssuer.text.length)
+                showImage(mImageDefault)
+            }
+            R.id.save -> {
+                val tp = TokenPersistence(this)
+                val token = tp[position]
+                token!!.issuer = mIssuer.text.toString()
+                token.label = mLabel.text.toString()
+                token.image = mImageDisplay
+                TokenPersistence.saveAsync(this, token)
+                finish()
+            }
+            R.id.cancel -> finish()
         }
     }
 }

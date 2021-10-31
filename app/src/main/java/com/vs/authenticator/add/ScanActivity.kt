@@ -1,137 +1,123 @@
-package com.vs.authenticator.add;
+package com.vs.authenticator.add
 
-import static io.fotoapparat.parameter.selector.FocusModeSelectors.autoFocus;
-import static io.fotoapparat.parameter.selector.FocusModeSelectors.fixed;
-import static io.fotoapparat.parameter.selector.LensPositionSelectors.back;
-import static io.fotoapparat.parameter.selector.Selectors.firstAvailable;
-import static io.fotoapparat.parameter.selector.SizeSelectors.biggestSize;
+import android.app.Activity
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.content.pm.PackageManager
+import android.os.Bundle
+import android.view.View
+import android.widget.ImageView
+import com.squareup.picasso.Callback
+import com.squareup.picasso.Picasso
+import com.vs.authenticator.R
+import com.vs.authenticator.Token
+import com.vs.authenticator.Token.TokenUriInvalidException
+import com.vs.authenticator.TokenPersistence
+import io.fotoapparat.Fotoapparat
+import io.fotoapparat.parameter.ScaleType
+import io.fotoapparat.parameter.selector.FocusModeSelectors
+import io.fotoapparat.parameter.selector.LensPositionSelectors
+import io.fotoapparat.parameter.selector.Selectors
+import io.fotoapparat.parameter.selector.SizeSelectors
+import io.fotoapparat.view.CameraView
 
-import android.app.Activity;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.pm.PackageManager;
-import android.os.Bundle;
-import android.view.View;
-import android.widget.ImageView;
-
-import com.squareup.picasso.Callback;
-import com.squareup.picasso.Picasso;
-import com.vs.authenticator.R;
-import com.vs.authenticator.Token;
-import com.vs.authenticator.TokenPersistence;
-
-import io.fotoapparat.Fotoapparat;
-import io.fotoapparat.parameter.ScaleType;
-import io.fotoapparat.parameter.selector.FocusModeSelectors;
-import io.fotoapparat.view.CameraView;
-
-public class ScanActivity extends Activity {
-    private static ScanBroadcastReceiver receiver;
-    private Fotoapparat fotoapparat;
-
-    public static boolean hasCamera(Context context) {
-        PackageManager pm = context.getPackageManager();
-        return pm.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY);
-    }
-
-    private void addTokenAndFinish(String text) {
-        Token token = null;
+class ScanActivity : Activity() {
+    private var fotoapparat: Fotoapparat? = null
+    private fun addTokenAndFinish(text: String?) {
+        var token: Token? = null
         try {
-            token = new Token(text);
-        } catch (Token.TokenUriInvalidException e) {
-            e.printStackTrace();
+            token = Token(text)
+        } catch (e: TokenUriInvalidException) {
+            e.printStackTrace()
         }
 
         //do not receive any more broadcasts
-        this.unregisterReceiver(receiver);
-
-        //check if token already exists
-        assert token != null;
-        if (new TokenPersistence(ScanActivity.this).tokenExists(token)) {
-            finish();
-            return;
+        unregisterReceiver(receiver)
+        assert(token != null)
+        if (TokenPersistence(this@ScanActivity).tokenExists(token!!)) {
+            finish()
+            return
         }
-
-        TokenPersistence.saveAsync(ScanActivity.this, token);
-        if (token.getImage() == null) {
-            finish();
-            return;
+        TokenPersistence.saveAsync(this, token)
+        if (token.image == null) {
+            finish()
+            return
         }
+        val image = findViewById<ImageView>(R.id.image)
+        Picasso.with(this@ScanActivity)
+            .load(token.image)
+            .placeholder(R.drawable.scan)
+            .into(image, object : Callback {
+                override fun onSuccess() {
+                    findViewById<View>(R.id.progress).visibility = View.INVISIBLE
+                    image.alpha = 0.9f
+                    image.postDelayed({ finish() }, 2000)
+                }
 
-        final ImageView image = findViewById(R.id.image);
-        Picasso.with(ScanActivity.this)
-                .load(token.getImage())
-                .placeholder(R.drawable.scan)
-                .into(image, new Callback() {
-                    @Override
-                    public void onSuccess() {
-                        findViewById(R.id.progress).setVisibility(View.INVISIBLE);
-                        image.setAlpha(0.9f);
-                        image.postDelayed(() -> finish(), 2000);
-                    }
-
-                    @Override
-                    public void onError() {
-                        finish();
-                    }
-                });
+                override fun onError() {
+                    finish()
+                }
+            })
     }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
+    public override fun onDestroy() {
+        super.onDestroy()
         try {
-            this.unregisterReceiver(receiver);
-        } catch (IllegalArgumentException e) {
+            unregisterReceiver(receiver)
+        } catch (e: IllegalArgumentException) {
             // catch exception, when trying to unregister receiver again
             // there seems to be no way to check, if receiver if registered
         }
     }
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        receiver = new ScanBroadcastReceiver();
-        this.registerReceiver(receiver, new IntentFilter(ScanBroadcastReceiver.ACTION));
-        setContentView(R.layout.scan);
-        CameraView cameraView = findViewById(R.id.camera_view);
-
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        receiver = ScanBroadcastReceiver()
+        this.registerReceiver(receiver, IntentFilter(ACTION))
+        setContentView(R.layout.scan)
+        val cameraView: CameraView = findViewById(R.id.camera_view)
         fotoapparat = Fotoapparat
-                .with(this)
-                .into(cameraView)
-                .previewScaleType(ScaleType.CENTER_CROP)
-                .photoSize(biggestSize())
-                .lensPosition(back())
-                .focusMode(firstAvailable(
-                        FocusModeSelectors.continuousFocus(),
-                        autoFocus(),
-                        fixed()
-                ))
-                .frameProcessor(new ScanFrameProcessor(this))
-                .build();
+            .with(this)
+            .into(cameraView)
+            .previewScaleType(ScaleType.CENTER_CROP)
+            .photoSize(SizeSelectors.biggestSize())
+            .lensPosition(LensPositionSelectors.back())
+            .focusMode(
+                Selectors.firstAvailable(
+                    FocusModeSelectors.continuousFocus(),
+                    FocusModeSelectors.autoFocus(),
+                    FocusModeSelectors.fixed()
+                )
+            )
+            .frameProcessor(ScanFrameProcessor(this))
+            .build()
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        fotoapparat.start();
+    override fun onStart() {
+        super.onStart()
+        fotoapparat!!.start()
     }
 
-    @Override
-    protected void onStop() {
-        super.onStop();
-        fotoapparat.stop();
+    override fun onStop() {
+        super.onStop()
+        fotoapparat!!.stop()
     }
 
-    public class ScanBroadcastReceiver extends BroadcastReceiver {
-        public static final String ACTION = "ACTION_CODE_SCANNED";
+    inner class ScanBroadcastReceiver : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val text = intent.getStringExtra("scanResult")
+            addTokenAndFinish(text)
+        }
+    }
 
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String text = intent.getStringExtra("scanResult");
-            addTokenAndFinish(text);
+    companion object {
+        const val ACTION = "ACTION_CODE_SCANNED"
+        private var receiver: ScanBroadcastReceiver? = null
+        fun hasCamera(context: Context): Boolean {
+            val pm = context.packageManager
+            return pm.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)
         }
     }
 }

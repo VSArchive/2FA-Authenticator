@@ -10,6 +10,7 @@
         android:layout_width="96dp"
         android:layout_height="96dp"
         android:layout_gravity="left"
+        android:contentDescription="@string/logo"
         android:scaleType="fitCenter"
         android:src="@drawable/logo" />
 
@@ -33,7 +34,7 @@
         android:id="@+id/code"
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        android:layout_marginLeft="96dp"
+        android:layout_marginStart="96dp"
         android:gravity="left|center"
         android:paddingLeft="8dp"
         android:paddingRight="8dp"
@@ -45,11 +46,11 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        android:layout_marginLeft="96dp"
+        android:layout_marginStart="96dp"
         android:layout_marginTop="48dp"
         android:orientation="vertical"
-        android:paddingLeft="8dp"
-        android:paddingRight="32dp">
+        android:paddingStart="8dp"
+        android:paddingEnd="32dp">
 
         <include layout="@layout/titles" />
     </LinearLayout>
@@ -59,6 +60,7 @@
         android:layout_width="32dp"
         android:layout_height="48dp"
         android:layout_gravity="bottom|right"
+        android:contentDescription="@string/menu"
         android:paddingTop="12dp"
         android:paddingBottom="12dp"
         android:src="@drawable/menu" />
