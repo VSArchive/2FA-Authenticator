@@ -1,160 +1,140 @@
-package com.vs.authenticator;
+package com.vs.authenticator
 
-import android.content.Context;
-import android.util.AttributeSet;
-import android.view.View;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
-import android.widget.FrameLayout;
-import android.widget.ImageView;
-import android.widget.PopupMenu;
-import android.widget.TextView;
+import android.content.Context
+import android.util.AttributeSet
+import android.view.View
+import android.view.animation.AnimationUtils
+import android.widget.FrameLayout
+import android.widget.ImageView
+import android.widget.PopupMenu
+import android.widget.TextView
+import com.squareup.picasso.Picasso
+import java.util.*
 
-import com.squareup.picasso.Picasso;
+class TokenLayout : FrameLayout, View.OnClickListener, Runnable {
+    private var mProgressInner: ProgressCircle? = null
+    private var mProgressOuter: ProgressCircle? = null
+    private var mImage: ImageView? = null
+    private var mCode: TextView? = null
+    private var mIssuer: TextView? = null
+    private var mLabel: TextView? = null
+    private var mPopupMenu: PopupMenu? = null
+    private var mCodes: TokenCode? = null
+    private var mType: Token.TokenType? = null
+    private var mPlaceholder: String? = null
+    private var mStartTime: Long = 0
 
-import java.util.Arrays;
+    constructor(context: Context?) : super(context!!)
+    constructor(context: Context?, attrs: AttributeSet?) : super(
+        context!!, attrs
+    )
 
-public class TokenLayout extends FrameLayout implements View.OnClickListener, Runnable {
-    private ProgressCircle mProgressInner;
-    private ProgressCircle mProgressOuter;
-    private ImageView mImage;
-    private TextView mCode;
-    private TextView mIssuer;
-    private TextView mLabel;
-    private PopupMenu mPopupMenu;
+    constructor(context: Context?, attrs: AttributeSet?, defStyle: Int) : super(
+        context!!, attrs, defStyle
+    )
 
-    private TokenCode mCodes;
-    private Token.TokenType mType;
-    private String mPlaceholder;
-    private long mStartTime;
-
-    public TokenLayout(Context context) {
-        super(context);
+    override fun onFinishInflate() {
+        super.onFinishInflate()
+        mProgressInner = findViewById(R.id.progressInner)
+        mProgressOuter = findViewById(R.id.progressOuter)
+        mImage = findViewById(R.id.image)
+        mCode = findViewById(R.id.code)
+        mIssuer = findViewById(R.id.issuer)
+        mLabel = findViewById(R.id.label)
+        val mMenu = findViewById<ImageView>(R.id.menu)
+        mPopupMenu = PopupMenu(context, mMenu)
+        mMenu.setOnClickListener(this)
     }
 
-    public TokenLayout(Context context, AttributeSet attrs) {
-        super(context, attrs);
-    }
-
-    public TokenLayout(Context context, AttributeSet attrs, int defStyle) {
-        super(context, attrs, defStyle);
-    }
-
-    @Override
-    protected void onFinishInflate() {
-        super.onFinishInflate();
-
-        mProgressInner = findViewById(R.id.progressInner);
-        mProgressOuter = findViewById(R.id.progressOuter);
-        mImage = findViewById(R.id.image);
-        mCode = findViewById(R.id.code);
-        mIssuer = findViewById(R.id.issuer);
-        mLabel = findViewById(R.id.label);
-        ImageView mMenu = findViewById(R.id.menu);
-
-        mPopupMenu = new PopupMenu(getContext(), mMenu);
-        mMenu.setOnClickListener(this);
-    }
-
-    public void bind(Token token, int menu, PopupMenu.OnMenuItemClickListener micl) {
-        mCodes = null;
+    fun bind(token: Token, menu: Int, micl: PopupMenu.OnMenuItemClickListener?) {
+        mCodes = null
 
         // Setup menu.
-        mPopupMenu.getMenu().clear();
-        mPopupMenu.getMenuInflater().inflate(menu, mPopupMenu.getMenu());
-        mPopupMenu.setOnMenuItemClickListener(micl);
+        mPopupMenu!!.menu.clear()
+        mPopupMenu!!.menuInflater.inflate(menu, mPopupMenu!!.menu)
+        mPopupMenu!!.setOnMenuItemClickListener(micl)
 
         // Cancel all active animations.
-        setEnabled(true);
-        removeCallbacks(this);
-        mImage.clearAnimation();
-        mProgressInner.clearAnimation();
-        mProgressOuter.clearAnimation();
-        mProgressInner.setVisibility(View.GONE);
-        mProgressOuter.setVisibility(View.GONE);
+        isEnabled = true
+        removeCallbacks(this)
+        mImage!!.clearAnimation()
+        mProgressInner!!.clearAnimation()
+        mProgressOuter!!.clearAnimation()
+        mProgressInner!!.visibility = GONE
+        mProgressOuter!!.visibility = GONE
 
         // Get the code placeholder.
-        char[] placeholder = new char[token.getDigits()];
-        Arrays.fill(placeholder, '-');
-        mPlaceholder = new String(placeholder);
+        val placeholder = CharArray(token.digits)
+        Arrays.fill(placeholder, '-')
+        mPlaceholder = String(placeholder)
 
         // Show the image.
-        Picasso.with(getContext())
-                .load(token.getImage())
-                .placeholder(R.mipmap.ic_freeotp_logo_foreground)
-                .fit()
-                .into(mImage);
+        Picasso.with(context)
+            .load(token.image)
+            .placeholder(R.drawable.logo)
+            .fit()
+            .into(mImage)
 
         // Set the labels.
-        mLabel.setText(token.getLabel());
-        mIssuer.setText(token.getIssuer());
-        mCode.setText(mPlaceholder);
-        if (mIssuer.getText().length() == 0) {
-            mIssuer.setText(token.getLabel());
-            mLabel.setVisibility(View.GONE);
+        mLabel!!.text = token.label
+        mIssuer!!.text = token.issuer
+        mCode!!.text = mPlaceholder
+        if (mIssuer!!.text.length == 0) {
+            mIssuer!!.text = token.label
+            mLabel!!.visibility = GONE
         } else {
-            mLabel.setVisibility(View.VISIBLE);
+            mLabel!!.visibility = VISIBLE
         }
     }
 
-    private void animate(View view, int anim, boolean animate) {
-        Animation a = AnimationUtils.loadAnimation(view.getContext(), anim);
-        if (!animate)
-            a.setDuration(0);
-        view.startAnimation(a);
+    private fun animate(view: View?, anim: Int, animate: Boolean) {
+        val a = AnimationUtils.loadAnimation(view!!.context, anim)
+        if (!animate) a.duration = 0
+        view.startAnimation(a)
     }
 
-    public void start(Token.TokenType type, TokenCode codes, boolean animate) {
-        mCodes = codes;
-        mType = type;
+    fun start(type: Token.TokenType?, codes: TokenCode?, animate: Boolean) {
+        mCodes = codes
+        mType = type
 
         // Start animations.
-        mProgressInner.setVisibility(View.VISIBLE);
-        animate(mProgressInner, R.anim.fadein, animate);
-        animate(mImage, R.anim.token_image_fadeout, animate);
-
-        // Handle type-specific UI.
-        switch (type) {
-            case HOTP:
-                setEnabled(false);
-                break;
-            case TOTP:
-                mProgressOuter.setVisibility(View.VISIBLE);
-                animate(mProgressOuter, R.anim.fadein, animate);
-                break;
+        mProgressInner!!.visibility = VISIBLE
+        animate(mProgressInner, R.anim.fadein, animate)
+        animate(mImage, R.anim.token_image_fadeout, animate)
+        when (type) {
+            Token.TokenType.HOTP -> isEnabled = false
+            Token.TokenType.TOTP -> {
+                mProgressOuter!!.visibility = VISIBLE
+                animate(mProgressOuter, R.anim.fadein, animate)
+            }
         }
-
-        mStartTime = System.currentTimeMillis();
-        post(this);
+        mStartTime = System.currentTimeMillis()
+        post(this)
     }
 
-    @Override
-    public void onClick(View v) {
-        mPopupMenu.show();
+    override fun onClick(v: View) {
+        mPopupMenu!!.show()
     }
 
-    @Override
-    public void run() {
+    override fun run() {
         // Get the current data
-        String code = mCodes == null ? null : mCodes.getCurrentCode();
+        val code = if (mCodes == null) null else mCodes!!.currentCode
         if (code != null) {
             // Determine whether to enable/disable the view.
-            if (!isEnabled())
-                setEnabled(System.currentTimeMillis() - mStartTime > 5000);
+            if (!isEnabled) isEnabled = System.currentTimeMillis() - mStartTime > 5000
 
             // Update the fields
-            mCode.setText(code);
-            mProgressInner.setProgress(mCodes.getCurrentProgress());
-            if (mType != Token.TokenType.HOTP)
-                mProgressOuter.setProgress(mCodes.getTotalProgress());
-
-            postDelayed(this, 100);
-            return;
+            mCode!!.text = code
+            mProgressInner!!.setProgress(mCodes!!.currentProgress)
+            if (mType != Token.TokenType.HOTP) mProgressOuter!!.setProgress(
+                mCodes!!.totalProgress
+            )
+            postDelayed(this, 100)
+            return
         }
-
-        mCode.setText(mPlaceholder);
-        mProgressInner.setVisibility(View.GONE);
-        mProgressOuter.setVisibility(View.GONE);
-        animate(mImage, R.anim.token_image_fadein, true);
+        mCode!!.text = mPlaceholder
+        mProgressInner!!.visibility = GONE
+        mProgressOuter!!.visibility = GONE
+        animate(mImage, R.anim.token_image_fadein, true)
     }
 }

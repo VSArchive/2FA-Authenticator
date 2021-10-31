@@ -1,142 +1,136 @@
-package com.vs.authenticator;
+package com.vs.authenticator
 
-import android.Manifest;
-import android.app.Activity;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.pm.PackageManager;
-import android.database.DataSetObserver;
-import android.net.Uri;
-import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.MenuItem.OnMenuItemClickListener;
-import android.view.View;
-import android.view.WindowManager.LayoutParams;
-import android.widget.GridView;
-import android.widget.Toast;
+import android.Manifest
+import android.app.Activity
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.content.pm.PackageManager
+import android.database.DataSetObserver
+import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
+import android.view.View
+import android.view.WindowManager
+import android.widget.GridView
+import android.widget.Toast
+import com.vs.authenticator.Token.TokenUriInvalidException
+import com.vs.authenticator.add.ScanActivity
 
-import com.vs.authenticator.add.ScanActivity;
-
-public class MainActivity extends Activity implements OnMenuItemClickListener {
-    public static final String ACTION_IMAGE_SAVED = "ACTION_IMAGE_SAVED";
-    private final int PERMISSIONS_REQUEST_CAMERA = 1;
-    private TokenAdapter mTokenAdapter;
-    private DataSetObserver mDataSetObserver;
-    private RefreshListBroadcastReceiver receiver;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        onNewIntent(getIntent());
-        setContentView(R.layout.main);
-
-        mTokenAdapter = new TokenAdapter(this);
-        receiver = new RefreshListBroadcastReceiver();
-        registerReceiver(receiver, new IntentFilter(ACTION_IMAGE_SAVED));
-        ((GridView) findViewById(R.id.grid)).setAdapter(mTokenAdapter);
+class MainActivity : Activity(), MenuItem.OnMenuItemClickListener {
+    private val PERMISSIONS_REQUEST_CAMERA = 1
+    private var mTokenAdapter: TokenAdapter? = null
+    private var mDataSetObserver: DataSetObserver? = null
+    private var receiver: RefreshListBroadcastReceiver? = null
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        onNewIntent(intent)
+        setContentView(R.layout.main)
+        mTokenAdapter = TokenAdapter(this)
+        receiver = RefreshListBroadcastReceiver()
+        registerReceiver(receiver, IntentFilter(ACTION_IMAGE_SAVED))
+        (findViewById<View>(R.id.grid) as GridView).adapter = mTokenAdapter
 
         // Don't permit screenshots since these might contain OTP codes.
-        getWindow().setFlags(LayoutParams.FLAG_SECURE, LayoutParams.FLAG_SECURE);
-
-        mDataSetObserver = new DataSetObserver() {
-            @Override
-            public void onChanged() {
-                super.onChanged();
-                if (mTokenAdapter.getCount() == 0)
-                    findViewById(android.R.id.empty).setVisibility(View.VISIBLE);
-                else
-                    findViewById(android.R.id.empty).setVisibility(View.GONE);
+        window.setFlags(
+            WindowManager.LayoutParams.FLAG_SECURE,
+            WindowManager.LayoutParams.FLAG_SECURE
+        )
+        mDataSetObserver = object : DataSetObserver() {
+            override fun onChanged() {
+                super.onChanged()
+                if (mTokenAdapter!!.count == 0) findViewById<View>(android.R.id.empty).visibility =
+                    View.VISIBLE else findViewById<View>(android.R.id.empty).visibility = View.GONE
             }
-        };
-        mTokenAdapter.registerDataSetObserver(mDataSetObserver);
+        }
+        mTokenAdapter!!.registerDataSetObserver(mDataSetObserver)
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        mTokenAdapter.notifyDataSetChanged();
+    override fun onResume() {
+        super.onResume()
+        mTokenAdapter!!.notifyDataSetChanged()
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        mTokenAdapter.notifyDataSetChanged();
+    override fun onPause() {
+        super.onPause()
+        mTokenAdapter!!.notifyDataSetChanged()
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        mTokenAdapter.unregisterDataSetObserver(mDataSetObserver);
-        unregisterReceiver(receiver);
+    override fun onDestroy() {
+        super.onDestroy()
+        mTokenAdapter!!.unregisterDataSetObserver(mDataSetObserver)
+        unregisterReceiver(receiver)
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.main, menu);
-        menu.findItem(R.id.action_scan).setVisible(ScanActivity.hasCamera(this));
-        menu.findItem(R.id.action_scan).setOnMenuItemClickListener(this);
-        return true;
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.main, menu)
+        menu.findItem(R.id.action_scan).isVisible = ScanActivity.hasCamera(this)
+        menu.findItem(R.id.action_scan).setOnMenuItemClickListener(this)
+        return true
     }
 
-    private void tryOpenCamera() {
+    private fun tryOpenCamera() {
         if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.CAMERA}, PERMISSIONS_REQUEST_CAMERA);
+            requestPermissions(arrayOf(Manifest.permission.CAMERA), PERMISSIONS_REQUEST_CAMERA)
         } else {
             // permission is already granted
-            openCamera();
+            openCamera()
         }
     }
 
-    private void openCamera() {
-        startActivity(new Intent(this, ScanActivity.class));
-        overridePendingTransition(R.anim.fadein, R.anim.fadeout);
+    private fun openCamera() {
+        startActivity(Intent(this, ScanActivity::class.java))
+        overridePendingTransition(R.anim.fadein, R.anim.fadeout)
     }
 
-    @Override
-    public boolean onMenuItemClick(MenuItem item) {
-        if (item.getItemId() == R.id.action_scan) {
-            tryOpenCamera();
-            return true;
+    override fun onMenuItemClick(item: MenuItem): Boolean {
+        return if (item.itemId == R.id.action_scan) {
+            tryOpenCamera()
+            true
         } else {
-            return false;
+            false
         }
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           String[] permissions, int[] grantResults) {
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>, grantResults: IntArray
+    ) {
         if (requestCode == PERMISSIONS_REQUEST_CAMERA) {
-            if (grantResults.length > 0
-                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                openCamera();
+            if (grantResults.isNotEmpty()
+                && grantResults[0] == PackageManager.PERMISSION_GRANTED
+            ) {
+                openCamera()
             } else {
-                Toast.makeText(MainActivity.this, R.string.error_permission_camera_open, Toast.LENGTH_LONG).show();
+                Toast.makeText(
+                    this@MainActivity,
+                    R.string.error_permission_camera_open,
+                    Toast.LENGTH_LONG
+                ).show()
             }
         }
     }
 
-    @Override
-    protected void onNewIntent(Intent intent) {
-        super.onNewIntent(intent);
-
-        Uri uri = intent.getData();
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        val uri = intent.data
         if (uri != null) {
             try {
-                TokenPersistence.saveAsync(this, new Token(uri));
-            } catch (Token.TokenUriInvalidException e) {
-                e.printStackTrace();
+                TokenPersistence.saveAsync(this, Token(uri))
+            } catch (e: TokenUriInvalidException) {
+                e.printStackTrace()
             }
         }
-
     }
 
-    private class RefreshListBroadcastReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            mTokenAdapter.notifyDataSetChanged();
+    private inner class RefreshListBroadcastReceiver : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            mTokenAdapter!!.notifyDataSetChanged()
         }
+    }
+
+    companion object {
+        const val ACTION_IMAGE_SAVED = "ACTION_IMAGE_SAVED"
     }
 }

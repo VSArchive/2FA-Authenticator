@@ -1,7 +1,8 @@
 package com.vs.authenticator;
 
 import android.net.Uri;
-import android.support.annotation.NonNull;
+
+import androidx.annotation.NonNull;
 
 import com.google.android.apps.authenticator.Base32String;
 import com.google.android.apps.authenticator.Base32String.DecodingException;
@@ -33,6 +34,7 @@ public class Token {
     private String algo;
     private long counter;
     private int period;
+
     private Token(Uri uri, boolean internal) throws TokenUriInvalidException {
         validateTokenURI(uri);
 
@@ -104,6 +106,7 @@ public class Token {
             setLabel(uri.getQueryParameter("labelalt"));
         }
     }
+
     public Token(String uri, boolean internal) throws TokenUriInvalidException {
         this(Uri.parse(uri), internal);
     }
