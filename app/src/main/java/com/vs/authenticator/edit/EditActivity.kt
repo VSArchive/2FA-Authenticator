@@ -67,7 +67,6 @@ class EditActivity : BaseActivity(), TextWatcher, View.OnClickListener {
         // Get references to widgets.
         mIssuer = findViewById(R.id.issuer)
         mLabel = findViewById(R.id.label)
-        mRestore = findViewById(R.id.restore)
         mSave = findViewById(R.id.save)
 
         // Setup text changed listeners.
@@ -77,7 +76,6 @@ class EditActivity : BaseActivity(), TextWatcher, View.OnClickListener {
         // Setup click callbacks.
         findViewById<View>(R.id.cancel).setOnClickListener(this)
         findViewById<View>(R.id.save).setOnClickListener(this)
-        findViewById<View>(R.id.restore).setOnClickListener(this)
 
         val imageButton: ImageButton? = findViewById(R.id.image)
 
@@ -134,12 +132,6 @@ class EditActivity : BaseActivity(), TextWatcher, View.OnClickListener {
                 intent.type = "image/*"
                 intent.addCategory(Intent.CATEGORY_OPENABLE)
                 startActivityForResult(intent, REQUEST_IMAGE_OPEN)
-            }
-            R.id.restore -> {
-                mLabel.setText(mLabelDefault)
-                mIssuer.setText(mIssuerDefault)
-                mIssuer.setSelection(mIssuer.text.length)
-                showImage(mImageDefault)
             }
             R.id.save -> {
                 val tp = TokenPersistence(this)

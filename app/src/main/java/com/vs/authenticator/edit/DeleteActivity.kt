@@ -1,26 +1,21 @@
-package com.vs.authenticator.edit;
+package com.vs.authenticator.edit
 
-import android.os.Bundle;
+import android.os.Bundle
+import android.view.View
+import com.vs.authenticator.R
+import com.vs.authenticator.TokenPersistence
 
-import com.vs.authenticator.R;
-import com.vs.authenticator.Token;
-import com.vs.authenticator.TokenPersistence;
-
-public class DeleteActivity extends BaseActivity {
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.delete);
-
-        final Token token = new TokenPersistence(this).get(getPosition());
-
-        findViewById(R.id.cancel).setOnClickListener(v -> finish());
-
-        findViewById(R.id.delete).setOnClickListener(v -> {
+class DeleteActivity : BaseActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.delete)
+        val token = TokenPersistence(this)[position]
+        findViewById<View>(R.id.cancel).setOnClickListener { finish() }
+        findViewById<View>(R.id.delete).setOnClickListener {
             //delete the image that was copied to storage, before deleting the token
-            token.deleteImage();
-            new TokenPersistence(DeleteActivity.this).delete(getPosition());
-            finish();
-        });
+            token!!.deleteImage()
+            TokenPersistence(this@DeleteActivity).delete(position)
+            finish()
+        }
     }
 }

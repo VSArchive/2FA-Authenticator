@@ -1,60 +1,42 @@
-package com.vs.authenticator;
+package com.vs.authenticator
 
-public class TokenCode {
-    private final String mCode;
-    private final long mStart;
-    private final long mUntil;
-    private TokenCode mNext;
+class TokenCode(private val mCode: String?, private val mStart: Long, private val mUntil: Long) {
+    private var mNext: TokenCode? = null
 
-    public TokenCode(String code, long start, long until) {
-        mCode = code;
-        mStart = start;
-        mUntil = until;
+    constructor(code: String?, start: Long, until: Long, next: TokenCode?) : this(
+        code,
+        start,
+        until
+    ) {
+        mNext = next
     }
 
-    public TokenCode(String code, long start, long until, TokenCode next) {
-        this(code, start, until);
-        mNext = next;
+    val currentCode: String?
+        get() {
+            val active = getActive(System.currentTimeMillis()) ?: return null
+            return active.mCode
+        }
+    val totalProgress: Int
+        get() {
+            val cur = System.currentTimeMillis()
+            val total = last.mUntil - mStart
+            val state = total - (cur - mStart)
+            return (state * 1000 / total).toInt()
+        }
+    val currentProgress: Int
+        get() {
+            val cur = System.currentTimeMillis()
+            val active = getActive(cur) ?: return 0
+            val total = active.mUntil - active.mStart
+            val state = total - (cur - active.mStart)
+            return (state * 1000 / total).toInt()
+        }
+
+    private fun getActive(curTime: Long): TokenCode? {
+        if (curTime in mStart until mUntil) return this
+        return if (mNext == null) null else mNext!!.getActive(curTime)
     }
 
-    public String getCurrentCode() {
-        TokenCode active = getActive(System.currentTimeMillis());
-        if (active == null)
-            return null;
-        return active.mCode;
-    }
-
-    public int getTotalProgress() {
-        long cur = System.currentTimeMillis();
-        long total = getLast().mUntil - mStart;
-        long state = total - (cur - mStart);
-        return (int) (state * 1000 / total);
-    }
-
-    public int getCurrentProgress() {
-        long cur = System.currentTimeMillis();
-        TokenCode active = getActive(cur);
-        if (active == null)
-            return 0;
-
-        long total = active.mUntil - active.mStart;
-        long state = total - (cur - active.mStart);
-        return (int) (state * 1000 / total);
-    }
-
-    private TokenCode getActive(long curTime) {
-        if (curTime >= mStart && curTime < mUntil)
-            return this;
-
-        if (mNext == null)
-            return null;
-
-        return this.mNext.getActive(curTime);
-    }
-
-    private TokenCode getLast() {
-        if (mNext == null)
-            return this;
-        return this.mNext.getLast();
-    }
+    private val last: TokenCode
+        get() = if (mNext == null) this else mNext!!.last
 }

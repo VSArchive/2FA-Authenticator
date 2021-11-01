@@ -35,8 +35,11 @@ class ScanActivity : Activity() {
 
         //do not receive any more broadcasts
         unregisterReceiver(receiver)
-        assert(token != null)
-        if (TokenPersistence(this@ScanActivity).tokenExists(token!!)) {
+        if (token == null){
+            finish()
+            return
+        }
+        if (TokenPersistence(this@ScanActivity).tokenExists(token)) {
             finish()
             return
         }

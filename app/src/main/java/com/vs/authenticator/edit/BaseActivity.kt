@@ -1,25 +1,22 @@
-package com.vs.authenticator.edit;
+package com.vs.authenticator.edit
 
-import android.app.Activity;
-import android.os.Bundle;
+import android.app.Activity
+import android.os.Bundle
+import io.fotoapparat.BuildConfig
 
-import io.fotoapparat.BuildConfig;
+abstract class BaseActivity : Activity() {
+    protected var position = 0
+        private set
 
-public abstract class BaseActivity extends Activity {
-    public static final String EXTRA_POSITION = "position";
-    private int mPosition;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
 
         // Get the position of the token. This MUST exist.
-        mPosition = getIntent().getIntExtra(EXTRA_POSITION, -1);
-        if (BuildConfig.DEBUG && mPosition < 0)
-            throw new RuntimeException("Could not create BaseActivity");
+        position = intent.getIntExtra(EXTRA_POSITION, -1)
+        if (BuildConfig.DEBUG && position < 0) throw RuntimeException("Could not create BaseActivity")
     }
 
-    protected int getPosition() {
-        return mPosition;
+    companion object {
+        const val EXTRA_POSITION = "position"
     }
 }

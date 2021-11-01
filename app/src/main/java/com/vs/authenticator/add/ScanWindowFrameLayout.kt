@@ -1,30 +1,25 @@
-package com.vs.authenticator.add;
+package com.vs.authenticator.add
 
-import android.content.Context;
-import android.util.AttributeSet;
-import android.widget.FrameLayout;
+import android.content.Context
+import android.util.AttributeSet
+import android.widget.FrameLayout
 
-public class ScanWindowFrameLayout extends FrameLayout {
-    public ScanWindowFrameLayout(Context context) {
-        super(context);
-    }
+class ScanWindowFrameLayout : FrameLayout {
+    constructor(context: Context?) : super(context!!)
+    constructor(context: Context?, attrs: AttributeSet?) : super(
+        context!!, attrs
+    )
 
-    public ScanWindowFrameLayout(Context context, AttributeSet attrs) {
-        super(context, attrs);
-    }
+    constructor(context: Context?, attrs: AttributeSet?, defStyle: Int) : super(
+        context!!, attrs, defStyle
+    )
 
-    public ScanWindowFrameLayout(Context context, AttributeSet attrs, int defStyle) {
-        super(context, attrs, defStyle);
-    }
-
-    @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         // Ensure that this view is always a square.
-        if (widthMeasureSpec > heightMeasureSpec)
-            widthMeasureSpec = heightMeasureSpec;
-        else
-            heightMeasureSpec = widthMeasureSpec;
-
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        var widthMeasureSpec = widthMeasureSpec
+        var heightMeasureSpec = heightMeasureSpec
+        if (widthMeasureSpec > heightMeasureSpec) widthMeasureSpec =
+            heightMeasureSpec else heightMeasureSpec = widthMeasureSpec
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
     }
 }

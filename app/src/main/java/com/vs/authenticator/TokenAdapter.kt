@@ -1,118 +1,101 @@
-package com.vs.authenticator;
+package com.vs.authenticator
 
-import android.content.ClipData;
-import android.content.ClipboardManager;
-import android.content.Context;
-import android.content.Intent;
-import android.database.DataSetObserver;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Toast;
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.Intent
+import android.database.DataSetObserver
+import android.view.LayoutInflater
+import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
+import android.widget.Toast
+import com.vs.authenticator.edit.BaseActivity.Companion.EXTRA_POSITION
+import com.vs.authenticator.edit.DeleteActivity
+import com.vs.authenticator.edit.EditActivity
+import java.util.*
 
-import com.vs.authenticator.edit.DeleteActivity;
-import com.vs.authenticator.edit.EditActivity;
+class TokenAdapter(ctx: Context) : BaseReorderAdapter() {
+    private val mTokenPersistence: TokenPersistence = TokenPersistence(ctx)
+    private val mLayoutInflater: LayoutInflater =
+        ctx.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+    private val mClipMan: ClipboardManager =
+        ctx.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+    private val mTokenCodes: MutableMap<String, TokenCode>
+    override fun getCount(): Int {
+        return mTokenPersistence.length()
+    }
 
-import java.util.HashMap;
-import java.util.Map;
+    override fun getItem(position: Int): Token {
+        return mTokenPersistence[position]!!
+    }
 
-public class TokenAdapter extends BaseReorderAdapter {
-    private final TokenPersistence mTokenPersistence;
-    private final LayoutInflater mLayoutInflater;
-    private final ClipboardManager mClipMan;
-    private final Map<String, TokenCode> mTokenCodes;
+    override fun getItemId(position: Int): Long {
+        return position.toLong()
+    }
 
-    public TokenAdapter(Context ctx) {
-        mTokenPersistence = new TokenPersistence(ctx);
-        mLayoutInflater = (LayoutInflater) ctx.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        mClipMan = (ClipboardManager) ctx.getSystemService(Context.CLIPBOARD_SERVICE);
-        mTokenCodes = new HashMap<>();
-        registerDataSetObserver(new DataSetObserver() {
-            @Override
-            public void onChanged() {
-                mTokenCodes.clear();
+    override fun move(fromPosition: Int, toPosition: Int) {
+        mTokenPersistence.move(fromPosition, toPosition)
+        notifyDataSetChanged()
+    }
+
+    override fun bindView(view: View?, position: Int) {
+        val ctx = view!!.context
+        val tl = view as TokenLayout?
+        val token = getItem(position)
+        tl!!.bind(token, R.menu.token) { item: MenuItem ->
+            val i: Intent
+            when (item.itemId) {
+                R.id.action_edit -> {
+                    i = Intent(ctx, EditActivity::class.java)
+                    i.putExtra(EXTRA_POSITION, position)
+                    ctx.startActivity(i)
+                }
+                R.id.action_delete -> {
+                    i = Intent(ctx, DeleteActivity::class.java)
+                    i.putExtra(EXTRA_POSITION, position)
+                    ctx.startActivity(i)
+                }
             }
-
-            @Override
-            public void onInvalidated() {
-                mTokenCodes.clear();
-            }
-        });
-    }
-
-    @Override
-    public int getCount() {
-        return mTokenPersistence.length();
-    }
-
-    @Override
-    public Token getItem(int position) {
-        return mTokenPersistence.get(position);
-    }
-
-    @Override
-    public long getItemId(int position) {
-        return position;
-    }
-
-    @Override
-    protected void move(int fromPosition, int toPosition) {
-        mTokenPersistence.move(fromPosition, toPosition);
-        notifyDataSetChanged();
-    }
-
-    @Override
-    protected void bindView(View view, final int position) {
-        final Context ctx = view.getContext();
-        TokenLayout tl = (TokenLayout) view;
-        Token token = getItem(position);
-
-        tl.bind(token, R.menu.token, item -> {
-            Intent i;
-
-            switch (item.getItemId()) {
-                case R.id.action_edit:
-                    i = new Intent(ctx, EditActivity.class);
-                    i.putExtra(EditActivity.EXTRA_POSITION, position);
-                    ctx.startActivity(i);
-                    break;
-
-                case R.id.action_delete:
-                    i = new Intent(ctx, DeleteActivity.class);
-                    i.putExtra(DeleteActivity.EXTRA_POSITION, position);
-                    ctx.startActivity(i);
-                    break;
-            }
-
-            return true;
-        });
-
-        tl.setOnClickListener(v -> {
-            TokenPersistence tp = new TokenPersistence(ctx);
+            true
+        }
+        tl.setOnClickListener { v: View ->
+            val tp = TokenPersistence(ctx)
 
             // Increment the token.
-            Token token1 = tp.get(position);
-            TokenCode codes = token1.generateCodes();
+            val token1 = tp[position]
+            val codes = token1!!.generateCodes()
             //save token. Image wasn't changed here, so just save it in sync
-            new TokenPersistence(ctx).save(token1);
+            TokenPersistence(ctx).save(token1)
 
             // Copy code to clipboard.
-            mClipMan.setPrimaryClip(ClipData.newPlainText(null, codes.getCurrentCode()));
-            Toast.makeText(v.getContext().getApplicationContext(),
-                    R.string.code_copied,
-                    Toast.LENGTH_SHORT).show();
-
-            mTokenCodes.put(token1.getID(), codes);
-            ((TokenLayout) v).start(token1.getType(), codes, true);
-        });
-
-        TokenCode tc = mTokenCodes.get(token.getID());
-        if (tc != null && tc.getCurrentCode() != null)
-            tl.start(token.getType(), tc, false);
+            mClipMan.setPrimaryClip(ClipData.newPlainText(null, codes.currentCode))
+            Toast.makeText(
+                v.context.applicationContext,
+                R.string.code_copied,
+                Toast.LENGTH_SHORT
+            ).show()
+            mTokenCodes[token1.id] = codes
+            (v as TokenLayout).start(token1.type, codes, true)
+        }
+        val tc = mTokenCodes[token.id]
+        if (tc?.currentCode != null) tl.start(token.type, tc, false)
     }
 
-    @Override
-    protected View createView(ViewGroup parent, int type) {
-        return mLayoutInflater.inflate(R.layout.token, parent, false);
+    override fun createView(parent: ViewGroup?, type: Int): View {
+        return mLayoutInflater.inflate(R.layout.token, parent, false)
+    }
+
+    init {
+        mTokenCodes = HashMap()
+        registerDataSetObserver(object : DataSetObserver() {
+            override fun onChanged() {
+                mTokenCodes.clear()
+            }
+
+            override fun onInvalidated() {
+                mTokenCodes.clear()
+            }
+        })
     }
 }
