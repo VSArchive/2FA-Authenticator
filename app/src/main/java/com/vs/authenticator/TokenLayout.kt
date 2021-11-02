@@ -46,13 +46,13 @@ class TokenLayout : FrameLayout, View.OnClickListener, Runnable {
         mMenu.setOnClickListener(this)
     }
 
-    fun bind(token: Token, menu: Int, micl: PopupMenu.OnMenuItemClickListener?) {
+    fun bind(token: Token, menu: Int, menuItemClickListener: PopupMenu.OnMenuItemClickListener?) {
         mCodes = null
 
         // Setup menu.
         mPopupMenu!!.menu.clear()
         mPopupMenu!!.menuInflater.inflate(menu, mPopupMenu!!.menu)
-        mPopupMenu!!.setOnMenuItemClickListener(micl)
+        mPopupMenu!!.setOnMenuItemClickListener(menuItemClickListener)
 
         // Cancel all active animations.
         isEnabled = true
@@ -79,7 +79,7 @@ class TokenLayout : FrameLayout, View.OnClickListener, Runnable {
         mLabel!!.text = token.label
         mIssuer!!.text = token.issuer
         mCode!!.text = mPlaceholder
-        if (mIssuer!!.text.length == 0) {
+        if (mIssuer!!.text.isEmpty()) {
             mIssuer!!.text = token.label
             mLabel!!.visibility = GONE
         } else {

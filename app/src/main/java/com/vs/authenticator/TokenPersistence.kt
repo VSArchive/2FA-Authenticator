@@ -24,7 +24,7 @@ class TokenPersistence(ctx: Context) {
         ctx.applicationContext.getSharedPreferences(NAME, Context.MODE_PRIVATE)
     private val gson: Gson = Gson()
     private val tokenOrder: List<String>
-        private get() {
+        get() {
             val type = object : TypeToken<List<String?>?>() {}.type
             val str = prefs.getString(ORDER, "[]")
             val order = gson.fromJson<List<String>>(str, type)
@@ -52,8 +52,8 @@ class TokenPersistence(ctx: Context) {
             // Backwards compatibility for URL-based persistence.
             try {
                 return Token(str, true)
-            } catch (tuie: TokenUriInvalidException) {
-                tuie.printStackTrace()
+            } catch (tokenUriInvalid: TokenUriInvalidException) {
+                tokenUriInvalid.printStackTrace()
             }
         }
         return null
@@ -108,15 +108,14 @@ class TokenPersistence(ctx: Context) {
                 try {
                     val bitmap = Picasso.with(params.context)
                         .load(
-                            params.token
-                                .image
+                            params.token.image
                         )
                         .resize(200, 200) // it's just an icon
                         .onlyScaleDown() //resize image, if bigger than 200x200
                         .get()
                     val outFile = params.outFile
                     //saveAsync image
-                    val out = FileOutputStream(outFile)
+                    val out = FileOutputStream(outFile, false)
                     bitmap.compress(Bitmap.CompressFormat.PNG, 50, out)
                     out.close()
                     params.token.image = Uri.fromFile(outFile)
@@ -130,49 +129,6 @@ class TokenPersistence(ctx: Context) {
             return@withContext ReturnParams(params.token, params.context)
         }
     }
-
-//    private class SaveTokenTask : AsyncTask<TaskParams?, Void?, ReturnParams>() {
-//        override fun doInBackground(vararg params: TaskParams?): ReturnParams {
-//            val taskParams = params[0]
-//            if (taskParams != null) {
-//                if (taskParams.token.image != null) {
-//                    try {
-//                        val bitmap = Picasso.with(taskParams.context)
-//                            .load(
-//                                taskParams.token
-//                                    .image
-//                            )
-//                            .resize(200, 200) // it's just an icon
-//                            .onlyScaleDown() //resize image, if bigger than 200x200
-//                            .get()
-//                        val outFile = taskParams.outFile
-//                        //saveAsync image
-//                        val out = FileOutputStream(outFile)
-//                        bitmap.compress(Bitmap.CompressFormat.PNG, 50, out)
-//                        out.close()
-//                        taskParams.token.image = Uri.fromFile(outFile)
-//                    } catch (e: IOException) {
-//                        e.printStackTrace()
-//                        //set image to null to prevent internet link in image, in case image
-//                        //was scanned, when no connection existed
-//                        taskParams.token.image = null
-//                    }
-//                }
-//                return ReturnParams(taskParams.token, taskParams.context)
-//            }
-//            else {
-//                return ReturnParams(params[0]!!.token, params[0]!!.context)
-//            }
-//        }
-//
-//        override fun onPostExecute(returnParams: ReturnParams) {
-//            super.onPostExecute(returnParams)
-//            //we downloaded the image, now save it normally
-//            TokenPersistence(returnParams.context).save(returnParams.token)
-//            //refresh TokenAdapter
-//            returnParams.context.sendBroadcast(Intent(MainActivity.ACTION_IMAGE_SAVED))
-//        }
-//    }
 
     companion object {
         private const val NAME = "tokens"

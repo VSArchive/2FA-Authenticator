@@ -15,11 +15,12 @@ class ScanWindowFrameLayout : FrameLayout {
     )
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        // Ensure that this view is always a square.
-        var widthMeasureSpec = widthMeasureSpec
-        var heightMeasureSpec = heightMeasureSpec
-        if (widthMeasureSpec > heightMeasureSpec) widthMeasureSpec =
-            heightMeasureSpec else heightMeasureSpec = widthMeasureSpec
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+        if (widthMeasureSpec > heightMeasureSpec)
+        {
+            super.onMeasure(heightMeasureSpec, heightMeasureSpec)
+        }
+        else {
+            super.onMeasure(widthMeasureSpec, widthMeasureSpec)
+        }
     }
 }

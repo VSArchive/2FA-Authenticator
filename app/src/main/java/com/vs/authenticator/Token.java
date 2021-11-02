@@ -1,6 +1,7 @@
 package com.vs.authenticator;
 
 import android.net.Uri;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 
@@ -17,7 +18,7 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
 public class Token {
-    private static final char[] STEAMCHARS = new char[]{
+    private static final char[] STEAM_CHARS = new char[]{
             '2', '3', '4', '5', '6', '7', '8', '9', 'B', 'C',
             'D', 'F', 'G', 'H', 'J', 'K', 'M', 'N', 'P', 'Q',
             'R', 'T', 'V', 'W', 'X', 'Y'};
@@ -168,8 +169,8 @@ public class Token {
             StringBuilder hotp = new StringBuilder();
             if (issuerExt.equals("Steam")) {
                 for (int i = 0; i < digits; i++) {
-                    hotp.append(STEAMCHARS[binary % STEAMCHARS.length]);
-                    binary /= STEAMCHARS.length;
+                    hotp.append(STEAM_CHARS[binary % STEAM_CHARS.length]);
+                    binary /= STEAM_CHARS.length;
                 }
             } else {
                 binary = binary % div;
@@ -288,7 +289,8 @@ public class Token {
         if (imageUri != null) {
             File image = new File(imageUri.getPath());
             if (image.exists())
-                image.delete();
+                if (image.delete())
+                    Log.d("DELETED", "Image Deleted");
         }
     }
 

@@ -9,13 +9,13 @@ import android.widget.BaseAdapter
 
 abstract class BaseReorderAdapter : BaseAdapter() {
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-        var convertView = convertView
-        if (convertView == null) {
+        var convertViewSave = convertView
+        if (convertViewSave == null) {
             val type = getItemViewType(position)
-            convertView = createView(parent, type)
+            convertViewSave = createView(parent, type)
 
             //unavoidable generic type problems -> Reference<View>
-            convertView.setOnDragListener { dstView: View, event: DragEvent ->
+            convertViewSave.setOnDragListener { dstView: View, event: DragEvent ->
                 val ref = event.localState as Reference<View>
                 val srcView = ref.reference
                 when (event.action) {
@@ -34,7 +34,7 @@ abstract class BaseReorderAdapter : BaseAdapter() {
                 }
                 true
             }
-            convertView.setOnLongClickListener { view: View ->
+            convertViewSave.setOnLongClickListener { view: View ->
                 // Force a reset of any states
                 notifyDataSetChanged()
 
@@ -48,9 +48,9 @@ abstract class BaseReorderAdapter : BaseAdapter() {
                 true
             }
         }
-        convertView.setTag(R.id.reorder_key, position)
-        bindView(convertView, position)
-        return convertView
+        convertViewSave.setTag(R.id.reorder_key, position)
+        bindView(convertViewSave, position)
+        return convertViewSave
     }
 
     protected abstract fun move(fromPosition: Int, toPosition: Int)

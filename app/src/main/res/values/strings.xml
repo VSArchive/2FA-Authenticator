@@ -27,6 +27,9 @@
     <string name="menu">menu</string>
     <string name="username">username</string>
     <string name="user_example_com">user@example.com</string>
+    <string name="frame">frame</string>
+    <string name="token_example">eb40924b&#8211;1d13&#8211;4807&#8211;9a76&#8211;30eb7ffa7eba</string> <!-- &#8211; is - -->
+    <string name="otp_example">01234567</string>
 
     <string-array name="algorithms">
         <item>MD5</item>

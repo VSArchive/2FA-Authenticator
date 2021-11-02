@@ -19,7 +19,6 @@ import com.vs.authenticator.Token.TokenUriInvalidException
 import com.vs.authenticator.add.ScanActivity
 
 class MainActivity : Activity(), MenuItem.OnMenuItemClickListener {
-    private val PERMISSIONS_REQUEST_CAMERA = 1
     private var mTokenAdapter: TokenAdapter? = null
     private var mDataSetObserver: DataSetObserver? = null
     private var receiver: RefreshListBroadcastReceiver? = null
@@ -132,5 +131,6 @@ class MainActivity : Activity(), MenuItem.OnMenuItemClickListener {
 
     companion object {
         const val ACTION_IMAGE_SAVED = "ACTION_IMAGE_SAVED"
+        const val PERMISSIONS_REQUEST_CAMERA = 1
     }
 }
