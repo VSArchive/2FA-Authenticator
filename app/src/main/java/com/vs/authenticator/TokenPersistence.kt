@@ -98,7 +98,7 @@ class TokenPersistence(ctx: Context) {
     private class TaskParams(val token: Token, val outFile: File?, val context: Context)
 
     /**
-     * Downloads/copies images to FreeOTP storage
+     * Downloads/copies images to storage
      * Saves token in PostExecute
      */
 

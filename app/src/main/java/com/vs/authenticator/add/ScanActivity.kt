@@ -1,6 +1,5 @@
 package com.vs.authenticator.add
 
-import android.app.Activity
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -9,6 +8,7 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.View
 import android.widget.ImageView
+import androidx.appcompat.app.AppCompatActivity
 import com.squareup.picasso.Callback
 import com.squareup.picasso.Picasso
 import com.vs.authenticator.R
@@ -23,7 +23,7 @@ import io.fotoapparat.parameter.selector.Selectors
 import io.fotoapparat.parameter.selector.SizeSelectors
 import io.fotoapparat.view.CameraView
 
-class ScanActivity : Activity() {
+class ScanActivity : AppCompatActivity() {
     private var fotoapparat: Fotoapparat? = null
     private fun addTokenAndFinish(text: String?) {
         var token: Token? = null
@@ -35,7 +35,7 @@ class ScanActivity : Activity() {
 
         //do not receive any more broadcasts
         unregisterReceiver(receiver)
-        if (token == null){
+        if (token == null) {
             finish()
             return
         }

@@ -21,9 +21,9 @@
             android:layout_height="match_parent"
             android:layout_gravity="center"
             android:alpha=".6"
+            android:contentDescription="@string/frame"
             android:scaleType="fitCenter"
-            android:src="@drawable/scan"
-            android:contentDescription="@string/frame" />
+            android:src="@drawable/scan" />
 
         <ProgressBar
             android:id="@+id/progress"

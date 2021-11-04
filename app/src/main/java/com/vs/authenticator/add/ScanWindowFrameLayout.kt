@@ -15,11 +15,9 @@ class ScanWindowFrameLayout : FrameLayout {
     )
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        if (widthMeasureSpec > heightMeasureSpec)
-        {
+        if (widthMeasureSpec > heightMeasureSpec) {
             super.onMeasure(heightMeasureSpec, heightMeasureSpec)
-        }
-        else {
+        } else {
             super.onMeasure(widthMeasureSpec, widthMeasureSpec)
         }
     }

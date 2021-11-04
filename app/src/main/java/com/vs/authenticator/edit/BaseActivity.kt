@@ -1,10 +1,10 @@
 package com.vs.authenticator.edit
 
-import android.app.Activity
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
 import io.fotoapparat.BuildConfig
 
-abstract class BaseActivity : Activity() {
+abstract class BaseActivity : AppCompatActivity() {
     protected var position = 0
         private set
 

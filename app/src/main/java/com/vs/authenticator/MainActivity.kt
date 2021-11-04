@@ -1,7 +1,6 @@
 package com.vs.authenticator
 
 import android.Manifest
-import android.app.Activity
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -15,10 +14,11 @@ import android.view.View
 import android.view.WindowManager
 import android.widget.GridView
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import com.vs.authenticator.Token.TokenUriInvalidException
 import com.vs.authenticator.add.ScanActivity
 
-class MainActivity : Activity(), MenuItem.OnMenuItemClickListener {
+class MainActivity : AppCompatActivity(), MenuItem.OnMenuItemClickListener {
     private var mTokenAdapter: TokenAdapter? = null
     private var mDataSetObserver: DataSetObserver? = null
     private var receiver: RefreshListBroadcastReceiver? = null
@@ -96,6 +96,7 @@ class MainActivity : Activity(), MenuItem.OnMenuItemClickListener {
         requestCode: Int,
         permissions: Array<String>, grantResults: IntArray
     ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == PERMISSIONS_REQUEST_CAMERA) {
             if (grantResults.isNotEmpty()
                 && grantResults[0] == PackageManager.PERMISSION_GRANTED
