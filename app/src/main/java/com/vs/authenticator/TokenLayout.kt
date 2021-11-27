@@ -107,6 +107,10 @@ class TokenLayout : FrameLayout, View.OnClickListener, Runnable {
                 mProgressOuter!!.visibility = VISIBLE
                 animate(mProgressOuter, R.anim.fadein, animate)
             }
+            else -> {
+                mProgressOuter!!.visibility = VISIBLE
+                animate(mProgressOuter, R.anim.fadein, animate)
+            }
         }
         mStartTime = System.currentTimeMillis()
         post(this)

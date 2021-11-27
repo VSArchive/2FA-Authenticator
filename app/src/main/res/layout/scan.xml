@@ -3,10 +3,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <io.fotoapparat.view.CameraView
-        android:id="@+id/camera_view"
+    <!--    <io.fotoapparat.view.CameraView-->
+    <!--        android:id="@+id/camera_view"-->
+    <!--        android:layout_width="match_parent"-->
+    <!--        android:layout_height="match_parent" />-->
+
+    <androidx.camera.view.PreviewView
+        android:id="@+id/previewView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"></androidx.camera.view.PreviewView>
 
     <com.vs.authenticator.add.ScanWindowFrameLayout
         android:id="@+id/window"

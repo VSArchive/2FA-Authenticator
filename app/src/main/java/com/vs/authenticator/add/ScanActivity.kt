@@ -1,40 +1,82 @@
 package com.vs.authenticator.add
 
-import android.content.BroadcastReceiver
 import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Size
 import android.view.View
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.camera.core.*
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
+import androidx.core.content.ContextCompat
+import com.google.common.util.concurrent.ListenableFuture
 import com.squareup.picasso.Callback
 import com.squareup.picasso.Picasso
 import com.vs.authenticator.R
 import com.vs.authenticator.Token
-import com.vs.authenticator.Token.TokenUriInvalidException
 import com.vs.authenticator.TokenPersistence
-import io.fotoapparat.Fotoapparat
-import io.fotoapparat.parameter.ScaleType
-import io.fotoapparat.parameter.selector.FocusModeSelectors
-import io.fotoapparat.parameter.selector.LensPositionSelectors
-import io.fotoapparat.parameter.selector.Selectors
-import io.fotoapparat.parameter.selector.SizeSelectors
-import io.fotoapparat.view.CameraView
+import java.util.concurrent.Executors
 
 class ScanActivity : AppCompatActivity() {
-    private var fotoapparat: Fotoapparat? = null
+    private lateinit var cameraProviderFuture: ListenableFuture<ProcessCameraProvider>
+
+    private val cameraExecutor = Executors.newSingleThreadExecutor()
+    private lateinit var previewView: PreviewView
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.scan)
+
+        previewView = findViewById(R.id.previewView)
+        cameraProviderFuture = ProcessCameraProvider.getInstance(this)
+
+        cameraProvider()
+    }
+
+    private fun cameraProvider() {
+        cameraProviderFuture.addListener({
+            val cameraProvider = cameraProviderFuture.get()
+            startCamera(cameraProvider)
+        }, ContextCompat.getMainExecutor(this))
+    }
+
+    private fun startCamera(cameraProvider: ProcessCameraProvider) {
+        val cameraSelector = CameraSelector.Builder()
+            .requireLensFacing(CameraSelector.LENS_FACING_BACK)
+            .build()
+
+        val preview = Preview.Builder().apply {
+            setTargetResolution(Size(previewView.width, previewView.height))
+        }.build()
+
+        val imageAnalysis = ImageAnalysis.Builder()
+            .setTargetResolution(Size(previewView.width, previewView.height))
+            .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+            .build()
+            .also {
+                it.setAnalyzer(cameraExecutor, QrCodeAnalyzer { qrResult ->
+                    previewView.post {
+                        addTokenAndFinish(qrResult.text)
+                    }
+                })
+            }
+
+        cameraProvider.unbindAll()
+
+        cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageAnalysis)
+        preview.setSurfaceProvider(previewView.surfaceProvider)
+    }
+
     private fun addTokenAndFinish(text: String?) {
         var token: Token? = null
         try {
             token = Token(text)
-        } catch (e: TokenUriInvalidException) {
+        } catch (e: Token.TokenUriInvalidException) {
             e.printStackTrace()
         }
 
-        //do not receive any more broadcasts
-        unregisterReceiver(receiver)
         if (token == null) {
             finish()
             return
@@ -65,59 +107,7 @@ class ScanActivity : AppCompatActivity() {
             })
     }
 
-    public override fun onDestroy() {
-        super.onDestroy()
-        try {
-            unregisterReceiver(receiver)
-        } catch (e: IllegalArgumentException) {
-            // catch exception, when trying to unregister receiver again
-            // there seems to be no way to check, if receiver if registered
-        }
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        receiver = ScanBroadcastReceiver()
-        this.registerReceiver(receiver, IntentFilter(ACTION))
-        setContentView(R.layout.scan)
-        val cameraView: CameraView = findViewById(R.id.camera_view)
-        fotoapparat = Fotoapparat
-            .with(this)
-            .into(cameraView)
-            .previewScaleType(ScaleType.CENTER_CROP)
-            .photoSize(SizeSelectors.biggestSize())
-            .lensPosition(LensPositionSelectors.back())
-            .focusMode(
-                Selectors.firstAvailable(
-                    FocusModeSelectors.continuousFocus(),
-                    FocusModeSelectors.autoFocus(),
-                    FocusModeSelectors.fixed()
-                )
-            )
-            .frameProcessor(ScanFrameProcessor(this))
-            .build()
-    }
-
-    override fun onStart() {
-        super.onStart()
-        fotoapparat!!.start()
-    }
-
-    override fun onStop() {
-        super.onStop()
-        fotoapparat!!.stop()
-    }
-
-    inner class ScanBroadcastReceiver : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            val text = intent.getStringExtra("scanResult")
-            addTokenAndFinish(text)
-        }
-    }
-
     companion object {
-        const val ACTION = "ACTION_CODE_SCANNED"
-        private var receiver: ScanBroadcastReceiver? = null
         fun hasCamera(context: Context): Boolean {
             val pm = context.packageManager
             return pm.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)

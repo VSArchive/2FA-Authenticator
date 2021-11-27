@@ -103,7 +103,7 @@ class TokenPersistence(ctx: Context) {
      */
 
     private class SaveTokenTask(override val coroutineContext: CoroutineContext) : CoroutineScope {
-        suspend fun doInBackground(params: TaskParams): ReturnParams = withContext(Dispatchers.IO) {
+        suspend fun doInBackground(params: TaskParams): ReturnParams = withContext(Dispatchers.Default) {
             if (params.token.image != null) {
                 try {
                     val bitmap = Picasso.with(params.context)
