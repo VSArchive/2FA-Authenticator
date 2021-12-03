@@ -4,16 +4,12 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Size
-import android.view.View
-import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
 import com.google.common.util.concurrent.ListenableFuture
-import com.squareup.picasso.Callback
-import com.squareup.picasso.Picasso
 import com.vs.authenticator.R
 import com.vs.authenticator.Token
 import com.vs.authenticator.TokenPersistence
@@ -86,25 +82,6 @@ class ScanActivity : AppCompatActivity() {
             return
         }
         TokenPersistence.saveAsync(this, token)
-        if (token.image == null) {
-            finish()
-            return
-        }
-        val image = findViewById<ImageView>(R.id.image)
-        Picasso.with(this@ScanActivity)
-            .load(token.image)
-            .placeholder(R.drawable.scan)
-            .into(image, object : Callback {
-                override fun onSuccess() {
-                    findViewById<View>(R.id.progress).visibility = View.INVISIBLE
-                    image.alpha = 0.9f
-                    image.postDelayed({ finish() }, 2000)
-                }
-
-                override fun onError() {
-                    finish()
-                }
-            })
     }
 
     companion object {

@@ -41,9 +41,9 @@ class TokenAdapter(ctx: Context) : BaseReorderAdapter() {
 
     override fun bindView(view: View?, position: Int) {
         val ctx = view!!.context
-        val tl = view as TokenLayout?
+        val tokenLayout = view as TokenLayout?
         val token = getItem(position)
-        tl!!.bind(token, R.menu.token) { item: MenuItem ->
+        tokenLayout!!.bind(token, R.menu.token) { item: MenuItem ->
             val i: Intent
             when (item.itemId) {
                 R.id.action_edit -> {
@@ -59,7 +59,7 @@ class TokenAdapter(ctx: Context) : BaseReorderAdapter() {
             }
             true
         }
-        tl.setOnClickListener { v: View ->
+        tokenLayout.setOnClickListener { v: View ->
             val tp = TokenPersistence(ctx)
 
             // Increment the token.
@@ -75,11 +75,7 @@ class TokenAdapter(ctx: Context) : BaseReorderAdapter() {
                 R.string.code_copied,
                 Toast.LENGTH_SHORT
             ).show()
-            mTokenCodes[token1.id] = codes
-            (v as TokenLayout).start(token1.type, codes, true)
         }
-        val tc = mTokenCodes[token.id]
-        if (tc?.currentCode != null) tl.start(token.type, tc, false)
     }
 
     override fun createView(parent: ViewGroup?, type: Int): View {

@@ -8,13 +8,6 @@ import com.google.zxing.*
 import com.google.zxing.common.HybridBinarizer
 import java.nio.ByteBuffer
 
-private fun ByteBuffer.toByteArray(): ByteArray {
-    rewind()
-    val data = ByteArray(remaining())
-    get(data)
-    return data
-}
-
 class QrCodeAnalyzer(
     private val onQrCodesDetected: (qrCode: Result) -> Unit
 ) : ImageAnalysis.Analyzer {
@@ -30,6 +23,13 @@ class QrCodeAnalyzer(
             DecodeHintType.POSSIBLE_FORMATS to arrayListOf(BarcodeFormat.QR_CODE)
         )
         setHints(map)
+    }
+
+    private fun ByteBuffer.toByteArray(): ByteArray {
+        rewind()
+        val data = ByteArray(remaining())
+        get(data)
+        return data
     }
 
     override fun analyze(image: ImageProxy) {

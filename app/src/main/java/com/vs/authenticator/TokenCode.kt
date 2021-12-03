@@ -16,13 +16,6 @@ class TokenCode(private val mCode: String?, private val mStart: Long, private va
             val active = getActive(System.currentTimeMillis()) ?: return null
             return active.mCode
         }
-    val totalProgress: Int
-        get() {
-            val cur = System.currentTimeMillis()
-            val total = last.mUntil - mStart
-            val state = total - (cur - mStart)
-            return (state * 1000 / total).toInt()
-        }
     val currentProgress: Int
         get() {
             val cur = System.currentTimeMillis()

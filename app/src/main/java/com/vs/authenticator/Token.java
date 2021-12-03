@@ -1,14 +1,12 @@
 package com.vs.authenticator;
 
 import android.net.Uri;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 
 import com.google.android.apps.authenticator.Base32String;
 import com.google.android.apps.authenticator.Base32String.DecodingException;
 
-import java.io.File;
 import java.nio.ByteBuffer;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -25,12 +23,10 @@ public class Token {
     private final String issuerInt;
     private final String issuerExt;
     private final String label;
-    private final String image;
     private final byte[] secret;
     private final int digits;
     private String issuerAlt;
     private String labelAlt;
-    private String imageAlt;
     private TokenType type;
     private String algo;
     private long counter;
@@ -99,8 +95,6 @@ public class Token {
         } catch (DecodingException | NullPointerException e) {
             throw new TokenUriInvalidException();
         }
-
-        image = uri.getQueryParameter("image");
 
         if (internal) {
             setIssuer(uri.getQueryParameter("issueralt"));
@@ -223,10 +217,6 @@ public class Token {
         labelAlt = (label == null || label.equals(this.label)) ? null : label;
     }
 
-    public int getDigits() {
-        return digits;
-    }
-
     // NOTE: This may change internal data. You MUST save the token immediately.
     public TokenCode generateCodes() {
         long cur = System.currentTimeMillis();
@@ -246,10 +236,6 @@ public class Token {
         }
 
         return null;
-    }
-
-    public TokenType getType() {
-        return type;
     }
 
     public Uri toUri() {
@@ -279,41 +265,6 @@ public class Token {
     @Override
     public String toString() {
         return toUri().toString();
-    }
-
-    /**
-     * delete image, which is attached to the token from storage
-     */
-    public void deleteImage() {
-        Uri imageUri = getImage();
-        if (imageUri != null) {
-            File image = new File(imageUri.getPath());
-            if (image.exists())
-                if (image.delete())
-                    Log.d("DELETED", "Image Deleted");
-        }
-    }
-
-    public Uri getImage() {
-        if (imageAlt != null)
-            return Uri.parse(imageAlt);
-
-        if (image != null)
-            return Uri.parse(image);
-
-        return null;
-    }
-
-    public void setImage(Uri image) {
-        //delete old token image, before assigning the new one
-        deleteImage();
-
-        imageAlt = null;
-        if (image == null)
-            return;
-
-        if (this.image == null || !Uri.parse(this.image).equals(image))
-            imageAlt = image.toString();
     }
 
     public enum TokenType {
