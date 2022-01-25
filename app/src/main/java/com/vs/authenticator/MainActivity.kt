@@ -80,7 +80,6 @@ class MainActivity : AppCompatActivity(), MenuItem.OnMenuItemClickListener {
 
     private fun openCamera() {
         startActivity(Intent(this, ScanActivity::class.java))
-        overridePendingTransition(R.anim.fadein, R.anim.fadeout)
     }
 
     override fun onMenuItemClick(item: MenuItem): Boolean {
